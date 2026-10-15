@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calango Rango — Cardápio e Pedidos</title>
+<meta name="description" content="Peça pratos, espetinhos e bebidas do Calango Rango direto pelo WhatsApp.">
+<meta name="theme-color" content="#14532D">
+<meta property="og:title" content="Calango Rango — Faça seu pedido">
+<meta property="og:description" content="Pratos, espetinhos e bebidas. Monte seu pedido e envie pelo WhatsApp.">
+<meta property="og:image" content="https://neurivansilva.github.io/calangorango/compartilhar.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="icone.png">
+<link rel="apple-touch-icon" href="icone.png">
+<style>
+  :root{
+    --verde:#14532D; --verde2:#15803D; --verde-claro:#DCFCE7; --amarelo:#FACC15; --amarelo-claro:#FEF9C3;
+    --texto:#1C1917; --cinza:#78716C; --borda:#E7E5E4; --fundo:#F6F7F3; --branco:#fff; --erro:#B91C1C;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;background:var(--fundo);color:var(--texto);padding-bottom:110px}
+  .wrap{max-width:560px;margin:0 auto}
+
+  /* topo */
+  .topo{background:linear-gradient(160deg,var(--verde),var(--verde2));color:#fff;text-align:center;padding:18px 16px 26px;border-bottom:6px solid var(--amarelo)}
+  .topo img{width:150px;height:auto;background:#fff;border-radius:26px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .topo h1{font-size:24px;font-weight:900;margin-top:10px}
+  .topo p{font-size:14px;color:var(--verde-claro);margin-top:2px}
+
+  /* tipo */
+  .tipo{display:flex;gap:8px;padding:14px 16px 4px}
+  .tipo button{flex:1;border:2px solid var(--borda);background:#fff;border-radius:14px;padding:11px 6px;font-size:15px;font-weight:700;color:var(--texto);cursor:pointer}
+  .tipo button.ativo{border-color:var(--verde2);background:var(--verde-claro);color:var(--verde)}
+  .tipo-nota{font-size:12.5px;color:var(--cinza);padding:4px 18px 0}
+
+  /* categorias */
+  .cats{position:sticky;top:0;z-index:5;background:var(--fundo);display:flex;gap:8px;overflow-x:auto;padding:12px 16px;scrollbar-width:none}
+  .cats::-webkit-scrollbar{display:none}
+  .cats a{flex-shrink:0;text-decoration:none;border:1px solid var(--borda);background:#fff;color:var(--texto);border-radius:99px;padding:8px 15px;font-size:14px;font-weight:700}
+  .cats a.ativo{background:var(--verde);border-color:var(--verde);color:#fff}
+
+  /* produtos */
+  section{padding:4px 16px 8px;scroll-margin-top:62px}
+  section h2{font-size:18px;font-weight:900;color:var(--verde);margin:10px 0 2px;display:flex;align-items:center;gap:8px}
+  section .sub{font-size:12.5px;color:var(--cinza);margin-bottom:8px}
+  .item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--borda);border-radius:14px;padding:12px 12px 12px 14px;margin-bottom:8px}
+  .item.tem{border-color:var(--verde2);box-shadow:0 0 0 1px var(--verde2) inset}
+  .item.bloq{opacity:.45}
+  .item .info{flex:1;min-width:0}
+  .item .nome{font-size:15.5px;font-weight:700}
+  .item .preco{font-size:14.5px;font-weight:800;color:var(--verde2);margin-top:2px}
+  .item .aviso{font-size:12px;color:var(--cinza);margin-top:2px}
+  .qtd{display:flex;align-items:center;gap:8px}
+  .qtd button{width:38px;height:38px;border-radius:12px;border:none;font-size:22px;font-weight:800;cursor:pointer;line-height:1}
+  .qtd .mais{background:var(--amarelo);color:var(--verde)}
+  .qtd .menos{background:var(--verde-claro);color:var(--verde)}
+  .qtd b{min-width:18px;text-align:center;font-size:16px}
+  .qtd button:disabled{background:#E7E5E4;color:#A8A29E;cursor:not-allowed}
+
+  /* barra do carrinho */
+  .barra{position:fixed;left:0;right:0;bottom:0;z-index:10;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--fundo) 30%)}
+  .barra button{width:100%;max-width:528px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;border:none;border-radius:16px;background:var(--verde);color:#fff;padding:15px 18px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(20,83,45,.35)}
+  .barra .cont{background:var(--amarelo);color:var(--verde);border-radius:99px;padding:2px 10px;font-size:14px}
+  .barra.vazio button{background:#A8A29E;box-shadow:none}
+
+  /* checkout */
+  .fundo-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:none}
+  .modal{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--fundo);border-radius:22px 22px 0 0;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .25s ease;padding-bottom:env(safe-area-inset-bottom)}
+  .modal.aberto{transform:none}
+  .modal .cab{position:sticky;top:0;background:var(--fundo);display:flex;align-items:center;justify-content:space-between;padding:16px 18px 8px;z-index:1}
+  .modal .cab h3{font-size:19px;font-weight:900;color:var(--verde)}
+  .modal .cab button{border:none;background:#E7E5E4;border-radius:10px;width:36px;height:36px;font-size:18px;cursor:pointer}
+  .modal .corpo{padding:4px 18px 22px;max-width:560px;margin:0 auto}
+  .resumo{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:10px 14px}
+  .resumo .l{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:5px 0;border-bottom:1px dashed var(--borda)}
+  .resumo .l:last-child{border-bottom:none}
+  .resumo .tot{font-weight:900;font-size:16px;color:var(--verde)}
+  .resumo .taxa{color:var(--cinza);font-size:13px}
+  .rot{display:block;font-size:13.5px;font-weight:800;margin:14px 0 6px}
+  .rot small{font-weight:600;color:var(--cinza)}
+  input,textarea{width:100%;border:1px solid var(--borda);border-radius:12px;padding:12px;font-size:16px;font-family:inherit;background:#fff}
+  textarea{resize:vertical;min-height:62px}
+  input:focus,textarea:focus{outline:2px solid var(--verde2);border-color:transparent}
+  .pags{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .pags button{border:2px solid var(--borda);background:#fff;border-radius:12px;padding:11px 6px;font-size:14.5px;font-weight:700;cursor:pointer;color:var(--texto)}
+  .pags button.ativo{border-color:var(--verde2);background:var(--verde-claro);color:var(--verde)}
+  .erro{color:var(--erro);font-size:13px;font-weight:700;margin-top:10px;display:none}
+  .enviar{width:100%;margin-top:16px;border:none;border-radius:16px;background:#16A34A;color:#fff;padding:16px;font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+  .enviar svg{width:24px;height:24px;fill:#fff}
+  .nota{font-size:12px;color:var(--cinza);text-align:center;margin-top:10px;line-height:1.45}
+
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--texto);color:#fff;padding:10px 16px;border-radius:12px;font-size:13.5px;font-weight:700;z-index:30;display:none;max-width:90%;text-align:center}
+  footer{text-align:center;font-size:12px;color:var(--cinza);padding:18px 16px 8px}
+  footer a{color:var(--verde2);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topo">
+    <img src="logo.webp" alt="Calango Rango" width="150" height="141">
+    <h1>Faça seu pedido</h1>
+    <p>Sabor que marca, qualidade que fica!</p>
+  </header>
+
+  <div class="tipo">
+    <button id="bEntrega" class="ativo" onclick="setTipo('entrega')">🛵 Entrega</button>
+    <button id="bRetirada" onclick="setTipo('retirada')">🏪 Retirar no local</button>
+  </div>
+  <div class="tipo-nota" id="tipoNota"></div>
+
+  <nav class="cats" id="cats"></nav>
+  <main id="lista"></main>
+
+  <footer>
+    Pedidos pelo WhatsApp <a href="https://wa.me/5586994379050">(86) 99437-9050</a><br>
+    Calango Rango · Altos-PI
+  </footer>
+</div>
+
+<div class="barra vazio" id="barra"><button onclick="abrirCheckout()"><span id="barraTxt">Escolha seus itens</span><span id="barraTot"></span></button></div>
+
+<div class="fundo-modal" id="fundo" onclick="fecharCheckout()"></div>
+<div class="modal" id="modal" role="dialog" aria-label="Finalizar pedido">
+  <div class="cab"><h3>Finalizar pedido</h3><button onclick="fecharCheckout()" aria-label="Fechar">✕</button></div>
+  <div class="corpo">
+    <div class="resumo" id="resumo"></div>
+
+    <label class="rot" for="fNome">Seu nome</label>
+    <input id="fNome" autocomplete="name" placeholder="Ex.: Maria">
+
+    <div id="blocoEndereco">
+      <label class="rot" for="fEnd">Endereço de entrega <small>(rua, número e bairro)</small></label>
+      <input id="fEnd" autocomplete="street-address" placeholder="Ex.: Rua São José, 55 — Alto Alegre">
+      <label class="rot" for="fRef">Ponto de referência</label>
+      <input id="fRef" placeholder="Ex.: ao lado do mercadinho, portão azul">
+    </div>
+
+    <span class="rot">Forma de pagamento</span>
+    <div class="pags" id="pags"></div>
+    <div id="blocoTroco" style="display:none">
+      <label class="rot" for="fTroco">Troco para quanto? <small>(deixe em branco se não precisar)</small></label>
+      <input id="fTroco" type="number" inputmode="decimal" min="0" placeholder="Ex.: 100">
+    </div>
+
+    <label class="rot" for="fObs">Observação <small>(opcional)</small></label>
+    <textarea id="fObs" placeholder="Ex.: espeto bem passado, sem farofa"></textarea>
+
+    <div class="erro" id="erro"></div>
+    <button class="enviar" onclick="enviar()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>
+      Enviar pedido pelo WhatsApp
+    </button>
+    <p class="nota" id="notaTaxa"></p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIGURAÇÃO DO ESTABELECIMENTO =====
+const WHATSAPP = '5586994379050';
+const PAGAMENTOS = ['PIX', 'Cartão de crédito', 'Cartão de débito', 'Dinheiro'];
+const CARDAPIO = [
+  {id:'pratos', nome:'🍛 Pratos', itens:[
+    ['Misturinha Completa',18],['Quentinha',20],['Misturinha Bovina',23],['Quentinha Bovina',25],['Lasanha (fatia)',10],['Pastel',5]]},
+  {id:'espetos', nome:'🍢 Espetos', sub:'Preço por unidade', itens:[
+    ['Espeto Bovino',15],['Filé de Frango',10],['Frango com Bacon',10],['Coxinha da Asa',10],['Linguiça',10],['Calabresa',10],['Porco',10],['Coração',10],['Língua',10]]},
+  {id:'bebidas', nome:'🥤 Bebidas', sub:'Sempre geladas!', itens:[
+    ['Refrigerante (lata)',6],['Guaraná 1L',8],['Coca-Cola 600ml',7],['Coca-Cola 1L',10],['Coca-Cola 1,5L',12],['Coca-Cola 2L',15],['Água sem gás',3],['Água com gás',4],['Cajuína 500ml',10]]},
+  {id:'cervejas', nome:'🍺 Cervejas', sub:'Somente para retirada no local — cerveja não vai na entrega.', soRetirada:true, itens:[
+    ['Cerveja Stella (garrafa)',14],['Skol (garrafa)',10],['Budweiser (garrafa)',10]]},
+];
+
+// ===== ESTADO =====
+const carrinho = {};            // chave: "cat|i" -> quantidade
+let tipo = 'entrega', pagamento = null;
+const R$ = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+const prod = k => { const [c,i] = k.split('|'); const cat = CARDAPIO.find(x=>x.id===c); return {cat, nome:cat.itens[i][0], preco:cat.itens[i][1]}; };
+const itensCarrinho = () => Object.entries(carrinho).filter(([,q])=>q>0).map(([k,q])=>({...prod(k), q}));
+const subtotal = () => itensCarrinho().reduce((s,i)=>s+i.preco*i.q, 0);
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none', 3200); }
+
+// lembra nome/endereço neste aparelho (só por conveniência)
+const salvo = (()=>{ try { return JSON.parse(localStorage.getItem('calango_cliente')||'{}'); } catch(e){ return {}; } })();
+
+// ===== RENDER =====
+function renderCardapio(){
+  document.getElementById('cats').innerHTML = CARDAPIO.map((c,n)=>`<a href="#${c.id}" class="${n===0?'ativo':''}">${c.nome}</a>`).join('');
+  document.getElementById('lista').innerHTML = CARDAPIO.map(c=>`
+    <section id="${c.id}">
+      <h2>${c.nome}</h2>${c.sub?`<div class="sub">${c.sub}</div>`:''}
+      ${c.itens.map((it,i)=>`<div class="item" id="it-${c.id}-${i}">
+        <div class="info"><div class="nome">${it[0]}</div><div class="preco">${R$(it[1])}</div><div class="aviso"></div></div>
+        <div class="qtd"></div></div>`).join('')}
+    </section>`).join('');
+  render();
+}
+
+function render(){
+  CARDAPIO.forEach(c=>c.itens.forEach((it,i)=>{
+    const k = c.id+'|'+i, q = carrinho[k]||0, bloq = c.soRetirada && tipo==='entrega';
+    const el = document.getElementById(`it-${c.id}-${i}`);
+    el.className = 'item' + (q?' tem':'') + (bloq?' bloq':'');
+    el.querySelector('.aviso').textContent = bloq ? 'Só para retirada no local' : '';
+    el.querySelector('.qtd').innerHTML = (q ? `<button class="menos" onclick="muda('${k}',-1)" aria-label="Remover um">−</button><b>${q}</b>` : '')
+      + `<button class="mais" onclick="muda('${k}',1)" aria-label="Adicionar" ${bloq?'disabled':''}>+</button>`;
+  }));
+  const n = itensCarrinho().reduce((s,i)=>s+i.q,0);
+  const barra = document.getElementById('barra');
+  barra.classList.toggle('vazio', n===0);
+  document.getElementById('barraTxt').innerHTML = n ? `<span class="cont">${n}</span> Ver pedido` : 'Escolha seus itens';
+  document.getElementById('barraTot').textContent = n ? R$(subtotal()) : '';
+  document.getElementById('tipoNota').textContent = tipo==='entrega'
+    ? 'A taxa de entrega depende do seu bairro e é confirmada pelo WhatsApp.'
+    : 'Você retira o pedido no Calango Rango.';
+}
+
+function muda(k, d){ carrinho[k] = Math.max(0, (carrinho[k]||0) + d); render(); if(document.getElementById('modal').classList.contains('aberto')) renderCheckout(); }
+
+function setTipo(t){
+  tipo = t;
+  document.getElementById('bEntrega').classList.toggle('ativo', t==='entrega');
+  document.getElementById('bRetirada').classList.toggle('ativo', t==='retirada');
+  if(t==='entrega'){
+    let tirou = false;
+    CARDAPIO.filter(c=>c.soRetirada).forEach(c=>c.itens.forEach((_,i)=>{ if(carrinho[c.id+'|'+i]){ carrinho[c.id+'|'+i]=0; tirou=true; } }));
+    if(tirou) toast('As cervejas foram retiradas: cerveja não vai na entrega.');
+  }
+  render();
+  if(document.getElementById('modal').classList.contains('aberto')) renderCheckout();
+}
+
+// ===== CHECKOUT =====
+function renderCheckout(){
+  const its = itensCarrinho();
+  if(!its.length){ fecharCheckout(); return; }
+  document.getElementById('resumo').innerHTML = its.map(i=>`<div class="l"><span>${i.q}× ${i.nome}</span><span>${R$(i.preco*i.q)}</span></div>`).join('')
+    + (tipo==='entrega' ? `<div class="l taxa"><span>Taxa de entrega</span><span>conforme o bairro</span></div>` : '')
+    + `<div class="l tot"><span>${tipo==='entrega'?'Subtotal':'Total'}</span><span>${R$(subtotal())}</span></div>`;
+  document.getElementById('blocoEndereco').style.display = tipo==='entrega' ? 'block' : 'none';
+  document.getElementById('pags').innerHTML = PAGAMENTOS.map(p=>`<button class="${p===pagamento?'ativo':''}" onclick="setPag('${p}')">${p==='PIX'?'💠 ':p==='Dinheiro'?'💵 ':'💳 '}${p}</button>`).join('');
+  document.getElementById('blocoTroco').style.display = pagamento==='Dinheiro' ? 'block' : 'none';
+  document.getElementById('notaTaxa').textContent = tipo==='entrega'
+    ? 'Ao tocar, o WhatsApp abre com seu pedido pronto. É só enviar! O Calango Rango confirma a taxa de entrega e o tempo de preparo.'
+    : 'Ao tocar, o WhatsApp abre com seu pedido pronto. É só enviar! O Calango Rango confirma quando estiver pronto para retirar.';
+}
+function setPag(p){ pagamento = p; renderCheckout(); }
+
+function abrirCheckout(){
+  if(!itensCarrinho().length){ toast('Toque no + para adicionar itens ao pedido.'); return; }
+  ['fNome','fEnd','fRef'].forEach(id=>{ const k={fNome:'nome',fEnd:'end',fRef:'ref'}[id]; const el=document.getElementById(id); if(!el.value && salvo[k]) el.value=salvo[k]; });
+  document.getElementById('erro').style.display='none';
+  renderCheckout();
+  document.getElementById('fundo').style.display='block';
+  document.getElementById('modal').classList.add('aberto');
+}
+function fecharCheckout(){
+  document.getElementById('modal').classList.remove('aberto');
+  document.getElementById('fundo').style.display='none';
+}
+
+function enviar(){
+  const link = montarLink();
+  if(link) window.location.href = link;
+}
+
+function montarLink(){
+  const v = id => document.getElementById(id).value.trim();
+  const nome=v('fNome'), end=v('fEnd'), ref=v('fRef'), obs=v('fObs'), troco=parseFloat(v('fTroco').replace(',','.'))||0;
+  const erro = document.getElementById('erro');
+  const falta = !nome ? 'Informe seu nome.' : (tipo==='entrega' && !end) ? 'Informe o endereço de entrega.' : !pagamento ? 'Escolha a forma de pagamento.' : '';
+  if(falta){ erro.textContent = falta; erro.style.display='block'; return null; }
+  if(pagamento==='Dinheiro' && troco && troco < subtotal()){ erro.textContent='O valor do troco é menor que o total do pedido.'; erro.style.display='block'; return null; }
+  erro.style.display='none';
+
+  try { localStorage.setItem('calango_cliente', JSON.stringify({nome, end, ref})); } catch(e){}
+
+  const its = itensCarrinho();
+  const linhas = [
+    '🦎 *NOVO PEDIDO — Calango Rango*',
+    '',
+    ...its.map(i=>`${i.q}× ${i.nome} — ${R$(i.preco*i.q)}`),
+    '',
+    `*${tipo==='entrega'?'Subtotal':'Total'}: ${R$(subtotal())}*`,
+    tipo==='entrega' ? '_(+ taxa de entrega conforme o bairro)_' : null,
+    '',
+    tipo==='entrega' ? '🛵 *Entrega*' : '🏪 *Retirada no local*',
+    `👤 ${nome}`,
+    tipo==='entrega' ? `📍 ${end}` : null,
+    tipo==='entrega' && ref ? `🧭 Ref.: ${ref}` : null,
+    `💰 ${pagamento}${pagamento==='Dinheiro' && troco ? ` — troco para ${R$(troco)}` : ''}`,
+    obs ? `📝 Obs.: ${obs}` : null,
+  ].filter(l=>l!==null);
+  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(linhas.join('\n'))}`;
+}
+
+// destaca a categoria visível
+const obs = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){
+  document.querySelectorAll('.cats a').forEach(a=>a.classList.toggle('ativo', a.getAttribute('href')==='#'+e.target.id));
+}}), {rootMargin:'-70px 0px -70% 0px'});
+
+renderCardapio();
+document.querySelectorAll('section').forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>
